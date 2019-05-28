@@ -1,0 +1,10 @@
+name: shiny
+title:
+username:
+account: moyin
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 663045
+bundleId: 1833664
+url: https://moyin.shinyapps.io/shiny/
+when: 1548320785.78818
