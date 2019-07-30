@@ -217,9 +217,9 @@ ncpower(n=330, significance = "1 sided 97.5%", p.experiment = 0.3, p.stdcare = 0
 cpower(n=330, significance = "1 sided 97.5%", p.experiment = 0.3, p.stdcare = 0.3, comply.experiment = 1, comply.stdcare = 1, NImargin = 0.1, 
        confounder.intervention="Increase likelihood", confounder.outcome="Decrease likelihood")
 
-setwd('samplesizenoncompliance/')
+setwd('/Users/moyin/Desktop/NItrialsimulation-master/samplesize_nonadherence/')
 require('rsconnect')
-rsconnect::setAccountInfo(name='moyin',
-                          token='FBE16B347A997A2CD2335554C9469606',
-                          secret='YW4Y1i87fl9oxizYDUIaAXl8ztQMYdDWddCW6bqs')
+rsconnect::setAccountInfo(name='moru', 
+                          token='30819BAEDD492333CE7CD293F3B08D42', 
+                          secret='j24TwHndsiybKqQZERFOt0s3L3ro8IG47/OgpLk/')
 deployApp()
