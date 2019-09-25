@@ -328,7 +328,7 @@ analysisunknown<- function(simdata, type,n,z,NImargin){
   }
 }
 
-plot.eff<- function(df,method,nIterations, true.effect){
+plot.eff<- function(df,method,nIterations, true.effect, ymin, ymax){
   
   k<-which(method==analysis.method)
   x<-c()
@@ -351,7 +351,7 @@ plot.eff<- function(df,method,nIterations, true.effect){
     scale_colour_manual(values=cbPalette[k])+
     theme(legend.title=element_blank(), legend.position="none", legend.text=element_text(size=legendfontsize))+
     scale_x_continuous(limits=c(start.interval, 1))+
-    #scale_y_continuous(limits=c(ymin, ymax))+
+    scale_y_continuous(limits=c(ymin, ymax))+
     geom_hline(yintercept=true.effect, linetype='dashed', color='red', size=0.5)
   
   return(plot)
@@ -361,7 +361,7 @@ plot.eff<- function(df,method,nIterations, true.effect){
 #################################################################################################
 
 #BIAS
-bias.nonconfounding<- function(n, p.experiment, p.stdcare, nIterations, interval, noncomply, true.effect){  
+bias.nonconfounding<- function(n, p.experiment, p.stdcare, nIterations, interval, noncomply, true.effect,ymin, ymax){  
   
   #make up vectors for simulations 
   .estimate<-c() #output from each simulation
@@ -380,10 +380,10 @@ bias.nonconfounding<- function(n, p.experiment, p.stdcare, nIterations, interval
   }
   
   #plot
-  iv<- plot.eff(df=estimate,analysis.method[1],nIterations=nIterations,  true.effect = true.effect )
-  itt<- plot.eff(df=estimate,analysis.method[2],nIterations=nIterations, true.effect = true.effect)
-  mpp<- plot.eff(df=estimate,analysis.method[3],nIterations=nIterations,  true.effect = true.effect)
-  pp<- plot.eff(df=estimate,analysis.method[4],nIterations=nIterations,  true.effect = true.effect)
+  iv<- plot.eff(df=estimate,analysis.method[1],nIterations=nIterations,  true.effect = true.effect ,  ymin=ymin, ymax=ymax)
+  itt<- plot.eff(df=estimate,analysis.method[2],nIterations=nIterations, true.effect = true.effect,  ymin=ymin, ymax=ymax)
+  mpp<- plot.eff(df=estimate,analysis.method[3],nIterations=nIterations,  true.effect = true.effect,  ymin=ymin, ymax=ymax)
+  pp<- plot.eff(df=estimate,analysis.method[4],nIterations=nIterations,  true.effect = true.effect,  ymin=ymin, ymax=ymax)
   
   bias.plot<-ggarrange(itt, pp,
                        mpp, iv,
@@ -437,7 +437,8 @@ type1.nonconfounding<- function(n, p.experiment, nIterations, interval,NImargin,
     theme(legend.position="bottom", legend.text=element_text(size=legendfontsize))+
     theme(legend.title=element_blank())+
     scale_x_continuous(limits=c(start.interval, 1))+
-    scale_y_continuous(breaks=seq(0,1,0.1))
+    scale_y_continuous(breaks=seq(0,1,0.1))+
+    geom_hline(yintercept=0.025, linetype='dashed', color='red', size=0.5)
   
   return(plot)
   
@@ -500,7 +501,7 @@ power.nonconfounding<- function(n, p.experiment, p.stdcare, NImargin,interval,nI
 ############################CASE 2 Non-compliance caused by confounding process  ################################
 ################################################################################################################
 #BIAS
-bias.confounding<- function(n, p.experiment, p.stdcare, confounder.intervention, confounder.outcome,interval,nIterations,noncomply, true.effect){  
+bias.confounding<- function(n, p.experiment, p.stdcare, confounder.intervention, confounder.outcome,interval,nIterations,noncomply, true.effect, ymin, ymax){  
   
   #make up vectors for simulations 
   estimate<-c()  #for saving output from each interval
@@ -522,10 +523,10 @@ bias.confounding<- function(n, p.experiment, p.stdcare, confounder.intervention,
   }
   
   #plot
-  iv<- plot.eff(df=estimate,analysis.method[1],nIterations=nIterations, true.effect = true.effect)
-  itt<- plot.eff(df=estimate,analysis.method[2],nIterations=nIterations, true.effect = true.effect)
-  mpp<- plot.eff(df=estimate,analysis.method[3],nIterations=nIterations, true.effect = true.effect)
-  pp<- plot.eff(df=estimate,analysis.method[4],nIterations=nIterations, true.effect = true.effect)
+  iv<- plot.eff(df=estimate,analysis.method[1],nIterations=nIterations, true.effect = true.effect,  ymin=ymin, ymax=ymax)
+  itt<- plot.eff(df=estimate,analysis.method[2],nIterations=nIterations, true.effect = true.effect,  ymin=ymin, ymax=ymax)
+  mpp<- plot.eff(df=estimate,analysis.method[3],nIterations=nIterations, true.effect = true.effect,  ymin=ymin, ymax=ymax)
+  pp<- plot.eff(df=estimate,analysis.method[4],nIterations=nIterations, true.effect = true.effect,  ymin=ymin, ymax=ymax)
   
   bias.plot<-ggarrange(itt, pp, 
                        mpp, iv,
@@ -582,7 +583,8 @@ type1.confounding<- function(n, p.experiment, NImargin, confounder.intervention,
     scale_colour_manual(values=cbPalette)+
     theme(legend.position="bottom", legend.text=element_text(size=legendfontsize), legend.title=element_blank())+
     scale_x_continuous(limits=c(start.interval, 1))+
-    scale_y_continuous(breaks=seq(0,1,0.1))
+    scale_y_continuous(breaks=seq(0,1,0.1))+
+    geom_hline(yintercept=0.025, linetype='dashed', color='red', size=0.5)
   
   return(plot)
   
@@ -645,7 +647,7 @@ power.confounding<- function(n, p.experiment, p.stdcare, NImargin, confounder.in
 ############################CASE 3 Non-compliance caused by unknown confounding process  #######################
 ################################################################################################################
 #BIAS
-bias.unknownconfounding<- function(n, p.experiment, p.stdcare, confounder.intervention, confounder.outcome,interval,nIterations,noncomply, true.effect){  
+bias.unknownconfounding<- function(n, p.experiment, p.stdcare, confounder.intervention, confounder.outcome,interval,nIterations,noncomply, true.effect, ymin, ymax){  
   
   #make up vectors for simulations 
   estimate<-c()  #for saving output from each interval
@@ -667,10 +669,10 @@ bias.unknownconfounding<- function(n, p.experiment, p.stdcare, confounder.interv
   }
   
   #plot
-  iv<- plot.eff(df=estimate,analysis.method[1],nIterations=nIterations, true.effect = true.effect)
-  itt<- plot.eff(df=estimate,analysis.method[2],nIterations=nIterations, true.effect = true.effect)
-  mpp<- plot.eff(df=estimate,analysis.method[3],nIterations=nIterations, true.effect = true.effect)
-  pp<- plot.eff(df=estimate,analysis.method[4],nIterations=nIterations, true.effect = true.effect)
+  iv<- plot.eff(df=estimate,analysis.method[1],nIterations=nIterations, true.effect = true.effect,  ymin=ymin, ymax=ymax)
+  itt<- plot.eff(df=estimate,analysis.method[2],nIterations=nIterations, true.effect = true.effect,  ymin=ymin, ymax=ymax)
+  mpp<- plot.eff(df=estimate,analysis.method[3],nIterations=nIterations, true.effect = true.effect,  ymin=ymin, ymax=ymax)
+  pp<- plot.eff(df=estimate,analysis.method[4],nIterations=nIterations, true.effect = true.effect,  ymin=ymin, ymax=ymax)
   
   bias.plot<-ggarrange(itt, pp, 
                        mpp, iv,
@@ -727,7 +729,8 @@ type1.unknownconfounding<- function(n, p.experiment, NImargin, confounder.interv
     scale_colour_manual(values=cbPalette)+
     theme(legend.position="bottom", legend.text=element_text(size=legendfontsize), legend.title=element_blank())+
     scale_x_continuous(limits=c(start.interval, 1))+
-    scale_y_continuous(breaks=seq(0,1,0.1))
+    scale_y_continuous(breaks=seq(0,1,0.1))+
+    geom_hline(yintercept=0.025, linetype='dashed', color='red', size=0.5)
   
   return(plot)
   
@@ -917,7 +920,7 @@ analysisunknown.multi<- function(simdata,n, NImargin){
   
 }
 
-bias.unknownconfounding.multi<- function(n, p.experiment, p.stdcare, confounder.intervention, confounder.outcome,interval,nIterations,noncomply){  
+bias.unknownconfounding.multi<- function(n, p.experiment, p.stdcare, confounder.intervention, confounder.outcome,interval,nIterations,noncomply, ymin, ymax){  
   
   #make up vectors for simulations 
   estimate<-c()  #for saving output from each interval
@@ -939,9 +942,9 @@ bias.unknownconfounding.multi<- function(n, p.experiment, p.stdcare, confounder.
   }
   
   #plot
-  iv= plot.eff(df=estimate, method=analysis.method[1], nIterations=nIterations, true.effect = true.effect)
-  itt= plot.eff(df=estimate, analysis.method[2], nIterations=nIterations, true.effect = true.effect)
-  pp=plot.eff(df=estimate, analysis.method[4], nIterations=nIterations, true.effect = true.effect)
+  iv= plot.eff(df=estimate, method=analysis.method[1], nIterations=nIterations, true.effect = true.effect,  ymin=ymin, ymax=ymax)
+  itt= plot.eff(df=estimate, analysis.method[2], nIterations=nIterations, true.effect = true.effect,  ymin=ymin, ymax=ymax)
+  pp=plot.eff(df=estimate, analysis.method[4], nIterations=nIterations, true.effect = true.effect,  ymin=ymin, ymax=ymax)
   
   x<-c()
   
@@ -968,7 +971,7 @@ bias.unknownconfounding.multi<- function(n, p.experiment, p.stdcare, confounder.
     scale_colour_manual(values=cbPalette.multi)+
     theme(legend.title=element_blank(), legend.text=element_text(size=legendfontsize), legend.position="none")+
     scale_x_continuous(limits=c(start.interval, 1))+
-    #scale_y_continuous(limits=c(ymin, ymax))+
+    scale_y_continuous(limits=c(ymin, ymax))+
     geom_hline(yintercept=true.effect, linetype='dashed', color='red', size=0.5)
   
   bias.plot<-ggarrange(itt, pp, mpp, iv,
