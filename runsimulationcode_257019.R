@@ -22,7 +22,7 @@ height= 10
 legendfontsize=12
 
 #Run simulations for case 1 (both groups non compliant) 
-b1both<-bias.nonconfounding(n=n, p.experiment=p.experiment, p.stdcare=p.stdcare,  nIterations=nIterations, interval = interval, noncomply = "both",true.effect=true.effect,ymin=-0.3, ymax=0.3)
+b1both<-bias.nonconfounding(n=n, p.experiment=p.experiment, p.stdcare=p.stdcare,  nIterations=nIterations, interval = interval, noncomply = "both",true.effect=true.effect,ymin=-0.2, ymax=0.3)
 t1both<-type1.nonconfounding(n=n, p.experiment=p.experiment, NImargin=NImargin,  nIterations=nIterations, interval = interval,noncomply = "both")
 case1<-ggarrange(b1both, t1both,  ncol = 2, labels = c('A','B'), 
                      common.legend = TRUE, legend = "bottom" )
