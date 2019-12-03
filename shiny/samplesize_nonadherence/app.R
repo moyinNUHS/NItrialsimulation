@@ -14,21 +14,22 @@ ui <-fluidPage(
                
                tabPanel("Introduction",
                         mainPanel(
-                            h3("This is a power calculator based on simulations of a two-arm non-inferiority trial with dichotomous outcome and time-fixed intervention."),
+                            h3("This is a power calculator based on simulations of a two-arm non-inferiority trial with a binary outcome and time-fixed treatment."),
                             h2(),
                             h3("How to use"),
-                            h4("1. Consider the potential factors which may cause non-adherence. Confounders are factors that affect both the adherence and the outcome.
+                            h4("1. Consider the potential factors which may cause non-adherence. Confounders are factors that affect both adherence to allocated treatment and the outcome.
                                Factors that affect adherence but do not affect the outcome are non-confounding. Choose the appropriate tabs above by considering the major drivers of non-adherence in the study."),
                             h4("2. Enter the number of participants per group that you would like to use to calculate power."),
                             h4("   3. Choose the non-inferiority margin."),
                             h4("   4. Choose the estimated proportion of adherent participants in each group."),
-                            h4("   5. Choose the estimated proportion of participants with outcome in each group."),
+                            h4("   5. Choose the estimated proportion of participants reaching the pre-defined outcome in each group."),
                             h4("   6. Choose the level of significance."),
-                            h4("   7. If the driver of non-adherence is by confounding factors, choose the confounder's direction of effect on adherence and outcome"),
+                            h4("   7. If the driver of non-adherence is mainly due to confounding factors, choose the confounder's direction of effect on adherence and outcome"),
                             h2(),
                             h3("Simulation mechanism"),
-                            h4("Participants are randomised in a 1:1 ratio. Adherence to assigned treatment may be dependent or independent of patient characteristics.\n 
-                               Power is estimated through simulating trial data based on the alternative hypothesis with treatment effect difference less than the non-inferiority margin. 
+                            h4("Participants are randomised in a 1:1 ratio. Adherence to assigned treatment may be dependent or independent of the participants' characteristics, depending on if non-adherence is caused by confounding or non-confounding factors respectively.\n
+                               Outcome is measured by the absolute risk difference between treatment failures in the experimental and control groups. 
+                               Power is estimated through simulating trial data based on the alternative hypothesis with treatment effect is less than the non-inferiority margin. 
                                Iterations with the upper 95% confidence interval boundary less than the non-inferiority margin are considered to have made the correct conclusion, hence contributing to power."),
                             h2(),
                             h3("Feedback"),
@@ -110,7 +111,7 @@ ui <-fluidPage(
                             # Main panel for displaying outputs ----
                             mainPanel(
                                 tableOutput("DisplayNC"),
-                                p("Note: The expected proportion of participants to have treatment failure in experimental arm should not be more than that of the standard-of-care arm by non-inferiority margin or more")
+                                p("Note: The expected proportion of participants to have treatment failure in experimental arm should not exceed that in the standard-of-care arm by non-inferiority margin or more")
                             )
                         )), 
                
@@ -177,17 +178,17 @@ ui <-fluidPage(
                                 
                                 #input 
                                 selectInput(inputId="confounder.intervention", 
-                                            label="Effect of confounder on intervention", 
-                                            choices= list("Increase likelihood" = "Increase likelihood", "Decrease likelihood" = "Decrease likelihood"),  
-                                            selected = "Increase likelihood", 
+                                            label="Effect of confounder on taking up the experimental treatment", 
+                                            choices= list("Increase probability" = "Increase probability", "Decrease probability" = "Decrease probability"),  
+                                            selected = "Increase probability", 
                                             multiple = FALSE, 
                                             selectize = TRUE),
                                 
                                 #input 
                                 selectInput(inputId="confounder.outcome", 
-                                            label="Effect of confounder on outcome", 
-                                            choices= list("Increase likelihood" = "Increase likelihood", "Decrease likelihood" = "Decrease likelihood"),  
-                                            selected = "Increase likelihood", 
+                                            label="Effect of confounder on treatment failure", 
+                                            choices= list("Increase probability" = "Increase probability", "Decrease probability" = "Decrease probability"),  
+                                            selected = "Increase probability", 
                                             multiple = FALSE, 
                                             selectize = TRUE),
                                 
@@ -200,7 +201,7 @@ ui <-fluidPage(
                             # Main panel for displaying outputs ----
                             mainPanel(
                                 tableOutput("DisplayC"),
-                                p("Note: The expected proportion of participants to have treatment failure in experimental arm should not be more than that of the standard-of-care arm by non-inferiority margin or more")
+                                p("Note: The expected proportion of participants to have treatment failure in experimental arm should not exceed that in the standard-of-care arm by non-inferiority margin or more")
                             )
                         ))
     ))
@@ -310,8 +311,8 @@ server <- function(input, output,session) {
                  "Non-inferiority margin", 
                  "Proportion of participants with outcome in experimental arm", 
                  "Proportion of participants with outcome in standard-of-care arm",
-                 "Proportion of participants who complied to allocated intervention in experimental arm",
-                 "Proportion of participants who complied to allocated intervention in standard-of-care arm",
+                 "Proportion of participants who complied to allocated treatment in experimental arm",
+                 "Proportion of participants who complied to allocated treatment in standard-of-care arm",
                  "Level of significance",
                  "Power using intention to treat analysis",
                  "Power using per-protocol analysis",
@@ -373,7 +374,7 @@ server <- function(input, output,session) {
                     confounder = rep(rbeta(n=n,shape1=2,shape2=2),2) #confounder beta distribution ranging 0-1 
                     
                     #COUNTERFACTUAL OUTCOMES with or without intervention (dependent on confounders and intervention)
-                    if (confounder.outcome=="Increase likelihood") {
+                    if (confounder.outcome=="Increase probability") {
                         #probability of outcome is drawn from beta distribution shape1<1 and shape2<1 (U shaped) such that confounder correlates with outcome 
                         shape2<-runif(1)
                         shape1<- shape2*p.experiment/(1-p.experiment) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
@@ -399,7 +400,7 @@ server <- function(input, output,session) {
                     d.grouped<-rbind(d.ordered[which(d.ordered[,2]==1),], d.ordered[which(d.ordered[,2]==0),])
                     
                     #INTERVENTION dependent on randomisation and confounders
-                    if (confounder.intervention=="Increase likelihood") {
+                    if (confounder.intervention=="Increase probability") {
                         shape2<-runif(1, min=1.5, max=5)
                         shape1<- shape2*comply.experiment/(1-comply.experiment) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
                         comply.experiment.ind<-sort(rbeta(n=n, shape1 = shape1, shape2 = shape2)) #individual probability with mean of p.experiment, in increasing order
@@ -482,11 +483,11 @@ server <- function(input, output,session) {
                  "Non-inferiority margin", 
                  "Proportion of participants with outcome in experimental arm", 
                  "Proportion of participants with outcome in standard-of-care arm",
-                 "Proportion of participants who complied to allocated intervention in experimental arm",
-                 "Proportion of participants who complied to allocated intervention in standard-of-care arm",
+                 "Proportion of participants who complied to allocated treatment in experimental arm",
+                 "Proportion of participants who complied to allocated treatment in standard-of-care arm",
                  "Level of significance",
-                 "Effect of confounder on intervention",
-                 "Effect of confounder on outcome",
+                 "Effect of confounder on taking up the experimental treatment",
+                 "Effect of confounder on treatment failure",
                  "Power using intention to treat analysis",
                  "Power using per-protocol analysis",
                  "Power using inverse probability weighting analysis",

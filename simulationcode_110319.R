@@ -15,7 +15,7 @@ cbPalette <- c("#009E73", "#CC79A7", "#E69F00", "#0072B2")
 analysis.method<- c("Instrumental variable","Intention to treat","Inverse probability weighting","Per protocol")
 
 #set number of data points at which simulated data is analysed  
-start.interval=0.6
+start.interval= 0.6
 interval <- seq(from=start.interval, to=1,by=0.025)
 
 ################Source functions#################
@@ -346,12 +346,16 @@ plot.eff<- function(df,method,nIterations, true.effect, ymin, ymax){
     geom_smooth(aes(y=V1, colour=method), method = "lm", formula = y ~ splines::bs(x, 3), se = FALSE)+
     guides(alpha=FALSE)+
     xlab("Proportion of adherent participants")+
-    ylab("Treatment effect")+
-    theme_bw()+
+    ylab("Effect estimate")+
+    theme_minimal()+
     scale_colour_manual(values=cbPalette[k])+
     theme(legend.title=element_blank(), legend.position="none", legend.text=element_text(size=legendfontsize))+
-    scale_x_continuous(limits=c(start.interval, 1))+
+    scale_x_continuous(limits=c(0.58, 1), breaks = seq(0.6, 1, by=0.1))+
     scale_y_continuous(limits=c(ymin, ymax))+
+    geom_segment(aes(x = 0.6, y = 0.1, xend = 0.6, yend = 0.25),arrow = arrow(length = unit(0.07, "inches")), colour = 'grey40') + 
+    geom_segment(aes(x = 0.6, y = 0.1, xend = 0.6, yend = -0.05),arrow = arrow(length = unit(0.07, "inches")), colour = 'grey40') + 
+    annotate(geom="text", x=0.58, y=0.11, angle = 90, label="Favour control", color="grey40", hjust=0) +
+    annotate(geom="text", x=0.58, y=0.09, angle = 90, label="Favour experiment", color="grey40", hjust=1) +
     geom_hline(yintercept=true.effect, linetype='dashed', color='red', size=0.5)
   
   return(plot)
@@ -432,7 +436,7 @@ type1.nonconfounding<- function(n, p.experiment, nIterations, interval,NImargin,
     guides(alpha=FALSE)+
     xlab("Proportion of adherent participants")+
     ylab("Type 1 error")+
-    theme_bw()+
+    theme_minimal()+
     scale_colour_manual(values=cbPalette)+
     theme(legend.position="bottom", legend.text=element_text(size=legendfontsize))+
     theme(legend.title=element_blank())+
@@ -486,7 +490,7 @@ power.nonconfounding<- function(n, p.experiment, p.stdcare, NImargin,interval,nI
  
       xlab("Proportion of adherent participants")+
       ylab("Power")+
-      theme_bw()+
+      theme_minimal()+
       scale_colour_manual(values=cbPalette)+
       theme(legend.position="bottom", legend.title=element_blank(), legend.text=element_text(size=legendfontsize))+
       scale_x_continuous(limits=c(start.interval, 1))+
@@ -579,7 +583,7 @@ type1.confounding<- function(n, p.experiment, NImargin, confounder.intervention,
     guides(alpha=FALSE)+
     xlab("Proportion of adherent participants")+
     ylab("Type 1 error")+
-    theme_bw()+
+    theme_minimal()+
     scale_colour_manual(values=cbPalette)+
     theme(legend.position="bottom", legend.text=element_text(size=legendfontsize), legend.title=element_blank())+
     scale_x_continuous(limits=c(start.interval, 1))+
@@ -632,7 +636,7 @@ power.confounding<- function(n, p.experiment, p.stdcare, NImargin, confounder.in
  
       xlab("Proportion of adherent participants")+
       ylab("Power")+
-      theme_bw()+
+      theme_minimal()+
       scale_colour_manual(values=cbPalette)+
       theme(legend.position="bottom", legend.text=element_text(size=legendfontsize), legend.title=element_blank())+
       scale_x_continuous(limits=c(start.interval, 1))+
@@ -725,7 +729,7 @@ type1.unknownconfounding<- function(n, p.experiment, NImargin, confounder.interv
     guides(alpha=FALSE)+
     xlab("Proportion of adherent participants")+
     ylab("Type 1 error")+
-    theme_bw()+
+    theme_minimal()+
     scale_colour_manual(values=cbPalette)+
     theme(legend.position="bottom", legend.text=element_text(size=legendfontsize), legend.title=element_blank())+
     scale_x_continuous(limits=c(start.interval, 1))+
@@ -777,7 +781,7 @@ power.unknownconfounding<- function(n, p.experiment, p.stdcare, NImargin, confou
       stat_smooth(aes(y=df$V4, colour=analysis.method[4]),  se = FALSE)+
       xlab("Proportion of adherent participants")+
       ylab("Power")+
-      theme_bw()+
+      theme_minimal()+
       scale_colour_manual(values=cbPalette)+
       theme(legend.position="bottom", legend.text=element_text(size=legendfontsize), legend.title=element_blank())+
       scale_x_continuous(limits=c(start.interval, 1))+
@@ -967,7 +971,7 @@ bias.unknownconfounding.multi<- function(n, p.experiment, p.stdcare, confounder.
     guides(alpha=FALSE)+
     xlab("Proportion of adherent participants")+
     ylab("Treatment effect")+
-    theme_bw()+
+    theme_minimal()+
     scale_colour_manual(values=cbPalette.multi)+
     theme(legend.title=element_blank(), legend.text=element_text(size=legendfontsize), legend.position="none")+
     scale_x_continuous(limits=c(start.interval, 1))+

@@ -1,32 +1,8 @@
 rm(list=ls())
 
-r<- c(rep(1,10),rep(0,10))
-pt.id<-1:20
-ds<-rep(1:10,2)
-phy.id<-c(2,2,1,1,1,2,2,1,1,2,2,1,2,2,1,1,1,2,2,2)
-int<-c(1,1,1,1,1,1,1,0,0,0,1,1,0,1,0,0,0,0,0,0)
-recurrence<-c(0,0,0,1,0,1,1,1,1,1,1,0,0,0,0,0,1,1,1,1)
-compliance<-c(1,1,1,1,0,0,1,0,0,0,0,0,0,0,1,1,1,1,1,1)
-d<-data.frame(cbind(pt.id, r, ds, phy.id, int, recurrence))
-
-t.test((d[d$int==1,])$ds,(d[d$int==0,])$ds)
-t.test((d[d$recurrence==1,])$ds,(d[d$recurrence==0,])$ds)
-
-(a<-nrow(d[phy.id==1 & int==1,]))
-(b<-nrow(d[phy.id==1 & int==0,]))
-(c<-nrow(d[phy.id==2 & int==1,]))
-(j<-nrow(d[phy.id==2 & int==0,]))
-chisq.test(x=matrix(c(a,c,b,j),2,2), simulate.p.value = TRUE, B=1000)
-
-(e<-nrow(d[phy.id==1 & recurrence==1,]))
-(f<-nrow(d[phy.id==1 & recurrence==0,]))
-(g<-nrow(d[phy.id==2 & recurrence==1,]))
-(h<-nrow(d[phy.id==2 & recurrence==0,]))
-chisq.test(x=matrix(c(e,g,f,h),2,2), simulate.p.value = TRUE, B=1000)
-
-#repeat each row 20 times 
-d20<-d[rep(seq_len(nrow(d)), each=20),]
-nrow(d20)
+#load simulated data
+load("~/Documents/nBox/git_projects/NItrialsimulation/manuscript_graphs/fullset.Rdata")
+fullset=
 
 library(geepack)
 pp<- as.data.frame(rbind(d20[d20$r==1 & d20$int==1,],d20[d20$r==0 & d20$int==0,]))# perprotocol population

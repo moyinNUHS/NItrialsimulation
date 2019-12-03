@@ -49,3 +49,25 @@ c=ggplot(Powerdata.c, aes(x=interval, y=samplesize, colour=Method, linetype=Powe
 plot=ggarrange(nc,c,labels=c('A','B'),
           common.legend = T,legend = 'bottom')
 ggsave(filename = paste("samplesize", Sys.Date(), ".pdf"), width = width, height = height*3/4, units = "in")
+
+###simplified for presentation
+Powerdata.nc=data.frame(
+  Method=rep(c('Inverse probability weighting','Instrumental variable'), each=length(interval)),
+  Power= rep(c('90%'),each=length(interval)),
+  interval=interval,
+  samplesize=c(630, 605, 580, 560, 525, 505,
+               2045, 1410, 1010, 780, 625, 505
+  )
+)
+
+ggplot(Powerdata.nc, aes(x=interval, y=samplesize, colour=Method, linetype=Power)) +
+  geom_point(aes(color = Method), alpha=0.01)+
+  scale_alpha_manual(values = c("Inverse probability weighting"=0.00001,"Instrumental variable" = 0.00001), guide = 'none')+
+  geom_smooth(aes(colour=Method), method = lm, formula = y ~ splines::bs(x, 3), se = FALSE)+
+  scale_color_manual(values=c("#00AFB5", "#E69F00"))+
+  ylab('Sample size per group')+
+  xlab('Proportion of adherent participants (%)')+
+  labs(title = "Non-adherence driven by non-confounding factors")+
+  theme_bw()+
+  theme(legend.position = 'bottom', legend.text=element_text(size=legendfontsize))
+
