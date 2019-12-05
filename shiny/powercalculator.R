@@ -223,3 +223,4 @@ rsconnect::setAccountInfo(name='moru',
                           token='30819BAEDD492333CE7CD293F3B08D42', 
                           secret='j24TwHndsiybKqQZERFOt0s3L3ro8IG47/OgpLk/')
 deployApp(account="moru",appName="samplesize_nonadherence")
+
