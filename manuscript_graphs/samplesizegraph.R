@@ -31,7 +31,7 @@ nc=ggplot(Powerdata.nc, aes(x=interval, y=samplesize, colour=Method, linetype=Po
     geom_smooth(aes(colour=Method), method = lm, formula = y ~ splines::bs(x, 3), se = FALSE)+
     scale_color_manual(values=c("#00AFB5", "#E69F00"))+
     ylab('Sample size per group')+
-    xlab('Proportion of adherent participants (%)')+
+    xlab('Proportion of adherent participants in each arm (%)')+
     labs(title = "Non-adherence driven by non-confounding factors")+
     theme_bw()+
     theme(legend.position = 'bottom', legend.text=element_text(size=legendfontsize))
@@ -41,7 +41,7 @@ c=ggplot(Powerdata.c, aes(x=interval, y=samplesize, colour=Method, linetype=Powe
     geom_smooth(aes(colour=Method), method = lm, formula = y ~ splines::bs(x, 3), se = FALSE)+
     scale_color_manual(values=c("#00AFB5", "#E69F00"))+
     ylab('')+
-    xlab('Proportion of adherent participants (%)')+
+    xlab('Proportion of adherent participants in each arm (%)')+
     labs(title = "Non-adherence driven by confounding factors")+
     theme_bw()+
     theme(legend.position = 'bottom',  legend.text=element_text(size=legendfontsize))

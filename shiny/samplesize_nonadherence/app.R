@@ -22,7 +22,7 @@ ui <-fluidPage(
              
              tabPanel("Introduction",
                       mainPanel(
-                        h3("This is a power calculator based on simulations of a two-arm non-inferiority trial with a binary outcome and time-fixed treatment."),
+                        h3("This is a power calculator based on simulations of a two-arm non-inferiority trial with a binary outcome and time-fixed treatment, which accounts for cross-over type of non-adherence"),
                         h2(),
                         h3("How to use"),
                         h4("1. Consider the potential factors which may cause non-adherence. Confounders are factors that affect both adherence to allocated treatment and the outcome.
@@ -40,7 +40,7 @@ ui <-fluidPage(
                                Power is estimated through simulating trial data based on the alternative hypothesis with treatment effect is less than the non-inferiority margin. 
                                Iterations with the upper 95% confidence interval boundary less than the non-inferiority margin are considered to have made the correct conclusion, hence contributing to power."),
                         h4(),
-                        h4("Further details of the simulation mechanism may be found at (cite paper when published)."),
+                        h4("Further details of the simulation mechanism are shared in our publication, Mo Y, Lim C, Mukaka M and Cooper BS. Statistical considerations in the design and analysis of non-inferiority trials with binary endpoints in the presence of non-adherence: a simulation study. Wellcome Open Res 2019, 4:207 (https://doi.org/10.12688/wellcomeopenres.15636.1)."),
                         h2(),
                         h3("Feedback"),
                         h4("Please contact Mo Yin (moyin@tropmedres.ac) to report any issues."),
@@ -75,7 +75,7 @@ ui <-fluidPage(
                           
                           # Input
                           sliderInput(inputId = "comply.experimentNC",
-                                      label = "Expected proporion of adherent participants in experimental arm ",
+                                      label = "Expected proportion of adherent participants in experimental arm ",
                                       min = 0.5,
                                       max = 1,
                                       value = 1,
@@ -191,8 +191,9 @@ ui <-fluidPage(
                           #input 
                           selectInput(inputId="confounder.intervention", 
                                       label="Effect of confounder on taking up the experimental treatment", 
-                                      choices= list("Increase probability" = "Increase probability", "Decrease probability" = "Decrease probability"),  
-                                      selected = "Increase probability", 
+                                      choices= list("Increasing confounder increases the probability of taking up the experimental treatment in both the experimental and control arms" = "Increase probability", 
+                                                    "Decreasing confounder decreases the probability of taking up the experimental treatment in both the experimental and control arms" = "Decrease probability"),  
+                                      selected = "Increasing confounder increases the probability of taking up the experimental treatment in both the experimental and control arms", 
                                       multiple = FALSE, 
                                       selectize = TRUE),
                           
@@ -259,13 +260,14 @@ server <- function(input, output,session) {
       
       if ((p.experiment-p.stdcare) >= NImargin) stop ("Error: NI margin must be positive, and true effect (in terms of negative outcomes) must be less than NI margin in this simulation") #built with alternative hypothesis: true effect < NI 
       
+      id= 1: 2*n #create participant id  
+      randomisation= rep(c(1,0), each = n) #randomisation
+      confounder = rbeta(n=n,shape1=2,shape2=2) #confounder beta distribution ranging 0-1 
+      
+      
       #simulate and derive treatment effect 
       for(l in 1:nIterations) { 
         tryCatch({
-          
-          id=seq(1,(2*n), by=1) #create participant id  
-          randomisation=c(rep(1,n), rep(0,n)) #randomisation
-          confounder = rep(rbeta(n=n,shape1=2,shape2=2),2) #confounder beta distribution ranging 0-1 
           
           #COUNTERFACTUAL OUTCOMES with or without intervention (dependent on confounders and intervention)
           outcome1 = sample(c(1,0), size=2*n, replace=TRUE, prob=c(p.experiment,1-p.experiment))  #probability of outcome if intervention = 1
@@ -277,49 +279,49 @@ server <- function(input, output,session) {
           intervention = c(experiment.intervention,stdcare.intervention)
           
           #ACTUAL OUTCOMES depend on intervention
-          outcome<-getoutcome(outcome1, outcome0, intervention)
+          outcome = getoutcome(outcome1, outcome0, intervention)
           
-          simdata<-matrix(data=c(id,randomisation,confounder,intervention,outcome), nrow=(2*n))
+          simdata = matrix(data=c(id,randomisation,confounder,intervention,outcome), nrow=(2*n))
           
           ## intention to treat 
           pz1.value = mean(simdata[which(simdata[,2]==1),][,5])
           pz0.value = mean(simdata[which(simdata[,2]==0),][,5])
           eff.itt = pz1.value-pz0.value
-          var.eff.itt<- pz1.value*(1-pz1.value)/n + pz0.value*(1-pz0.value)/n
-          CI.itt<- eff.itt + z*sqrt(var.eff.itt)
-          itt<-CI.itt<NImargin
+          var.eff.itt = pz1.value*(1-pz1.value)/n + pz0.value*(1-pz0.value)/n
+          CI.itt = eff.itt + z * sqrt(var.eff.itt)
+          itt = CI.itt < NImargin
           
           ## per protocol 
           pp = simdata[which(simdata[,2]==simdata[,4]),] # perprotocol population
-          p.experiment.vector= pp[which(pp[,2]==1),][,5]
-          p.experiment.value= mean(p.experiment.vector)
-          p.stdcare.vector= pp[which(pp[,2]==0),][,5]
-          p.stdcare.value= mean(p.stdcare.vector) 
+          p.experiment.vector = pp[which(pp[,2]==1),][,5]
+          p.experiment.value = mean(p.experiment.vector)
+          p.stdcare.vector = pp[which(pp[,2]==0),][,5]
+          p.stdcare.value = mean(p.stdcare.vector) 
           eff.pp = p.experiment.value-p.stdcare.value
-          var.eff.pp<-  p.experiment.value*(1-p.experiment.value)/length(p.experiment.vector) + p.stdcare.value*(1-p.stdcare.value)/length(p.stdcare.vector)
-          CI.pp<- eff.pp + z*sqrt(var.eff.pp)
-          ppp<- CI.pp<NImargin
+          var.eff.pp = p.experiment.value*(1-p.experiment.value)/length(p.experiment.vector) + p.stdcare.value*(1-p.stdcare.value)/length(p.stdcare.vector)
+          CI.pp = eff.pp + z*sqrt(var.eff.pp)
+          ppp = CI.pp < NImargin
           
           ## inverse probability weights on per protocol patients 
-          pp=as.data.frame(pp)
-          colnames(pp)=c('id','randomisation','confounder','intervention','outcome')
-          ipwmodel=glm(intervention~confounder,family=binomial(link="logit"), data=pp) #calculate denominators used in inverse probability weights
-          score=predict(ipwmodel, type="response")
-          weight= pp$intervention*mean(pp$intervention)/score+(1-pp$intervention)*(1-mean(pp$intervention))/(1-score)#create stabilized weights, using a null model with intervention as the dependent variable
-          outcomemodel=glm(outcome~intervention, family=binomial(link="identity"), weights=weight, data=pp) #identity link for risk difference
-          eff.mpp=coef(outcomemodel)[2]
-          se<-sqrt(diag(vcovHC(outcomemodel)))[2]
-          CI.mpp<-eff.mpp+z*se
-          mpp<- CI.mpp<NImargin
+          pp = as.data.frame(pp)
+          colnames(pp) = c('id','randomisation','confounder','intervention','outcome')
+          ipwmodel = glm(intervention~confounder,family=binomial(link="logit"), data = pp) #calculate denominators used in inverse probability weights
+          score = predict(ipwmodel, type="response")
+          weight = pp$intervention*mean(pp$intervention)/score+(1-pp$intervention)*(1-mean(pp$intervention))/(1-score)#create stabilized weights, using a null model with intervention as the dependent variable
+          outcomemodel = glm(outcome~intervention, family=binomial(link="identity"), weights=weight, data=pp) #identity link for risk difference
+          eff.mpp = coef(outcomemodel)[2]
+          se = sqrt(diag(vcovHC(outcomemodel)))[2]
+          CI.mpp = eff.mpp+z*se
+          mpp = CI.mpp<NImargin
           
           # iv with 2 stage regression
-          asmm <- gmm(simdata[,5] ~ simdata[,4], x=simdata[,2], vcov="iid")
-          eff.iv=summary(asmm)$ coefficients [2,1]
-          se<-summary(asmm)$coefficients [2,2]
-          CI.iv<-eff.iv + z*se
-          iv<- CI.iv<NImargin
+          asmm = gmm(simdata[,5] ~ simdata[,4], x=simdata[,2], vcov="iid")
+          eff.iv = summary(asmm)$coefficients[2,1]
+          se = summary(asmm)$coefficients [2,2]
+          CI.iv = eff.iv + z*se
+          iv = CI.iv < NImargin
           
-          power.iter[[l]]<-c(itt, ppp, mpp, iv)
+          power.iter[[l]] = c(itt, ppp, mpp, iv)
           
           # Increment the progress bar, and update the detail text.
           incProgress(1/nIterations, detail = paste("Iteration number (out of 1000 iterations)", l))
@@ -328,8 +330,8 @@ server <- function(input, output,session) {
       }
       
       # mean of power from iterated data 
-      power.matrixNC=matrix(as.numeric(unlist(power.iter)), nrow=nIterations, ncol=4,byrow = TRUE)
-      power.calNC= colMeans(power.matrixNC, na.rm = TRUE)
+      power.matrixNC = matrix(as.numeric(unlist(power.iter)), nrow=nIterations, ncol=4,byrow = TRUE)
+      power.calNC = colMeans(power.matrixNC, na.rm = TRUE)
     })
     
     Name = c("Number of participants per arm", 
@@ -380,85 +382,87 @@ server <- function(input, output,session) {
       options(digits=2)
       
       #make up vectors for simulations 
-      power.iter<-c() 
+      power.iter = c() 
       
       #number of iterations 
-      nIterations=1000
+      nIterations = 1000
       
       #significance 
-      ifelse (significance=="1 sided 97.5%", z <- qnorm(0.975), z <- qnorm(0.95))
+      ifelse (significance == "1 sided 97.5%", z <- qnorm(0.975), z <- qnorm(0.95))
       
       if ((p.experiment-p.stdcare) > NImargin) stop ("Error: NI margin must be positive, and true effect (in terms of negative outcomes) must be less than NI margin in this simulation") #built with alternative hypothesis: true effect < NI 
+      
+      id = 1: (2*n) #create participant id  
+      randomisation = rep(c(1,0), each = n) #randomisation
       
       #simulate and derive treatment effect 
       for(l in 1:nIterations) { 
         tryCatch({
-          id = seq(1,(2*n), by=1) #create participant id  
-          randomisation = c(rep(1,n), rep(0,n)) #randomisation
-          confounder = rep(rbeta(n=n,shape1=2,shape2=2),2) #confounder beta distribution ranging 0-1 
+          
+          confounder = rbeta(n=2*n,shape1=2,shape2=2) #confounder beta distribution ranging 0-1 
           
           #COUNTERFACTUAL OUTCOMES with or without intervention (dependent on confounders and intervention)
           if (confounder.outcome=="Increase probability") {
             #probability of outcome is drawn from beta distribution shape1<1 and shape2<1 (U shaped) such that confounder correlates with outcome 
-            shape2<-runif(1)
-            shape1<- shape2*p.experiment/(1-p.experiment) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
-            p.experiment.ind<-sort(rbeta(n=(2*n), shape1 = shape1, shape2 = shape2)) #individual probability with mean of p.experiment, in increasing order
-            outcome1<- rbinom(2*n, 1, prob=p.experiment.ind) #increasing confounder value will have increasing probability for outcome 
+            shape2 = runif(1)
+            shape1 = shape2*p.experiment/(1-p.experiment) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
+            p.experiment.ind = sort(rbeta(n=(2*n), shape1 = shape1, shape2 = shape2)) #individual probability with mean of p.experiment, in increasing order
+            outcome1 = rbinom(2*n, 1, prob=p.experiment.ind) #increasing confounder value will have increasing probability for outcome 
             
-            shape1<- shape2*p.stdcare/(1-p.stdcare) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
-            p.stdcare.ind<-sort(rbeta(n=(2*n), shape1 = shape1, shape2 = shape2)) #individual probability with mean of p.experiment, in increasing order
-            outcome0<- rbinom(2*n, 1, prob=p.stdcare.ind) #increasing confounder value will have increasing probability for outcome 
+            shape1 = shape2*p.stdcare/(1-p.stdcare) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
+            p.stdcare.ind = sort(rbeta(n=(2*n), shape1 = shape1, shape2 = shape2)) #individual probability with mean of p.experiment, in increasing order
+            outcome0 = rbinom(2*n, 1, prob = p.stdcare.ind) #increasing confounder value will have increasing probability for outcome 
           } else {
-            shape2<-runif(1)
-            shape1<- shape2*p.experiment/(1-p.experiment) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
-            p.experiment.ind<-sort(rbeta(n=(2*n), shape1 = shape1, shape2 = shape2), decreasing = TRUE) #individual probability with mean of p.experiment, in decreasing order
-            outcome1<- rbinom(2*n, 1, prob=p.experiment.ind) #increasing confounder value will have decreasing probability for outcome 
+            shape2 = runif(1)
+            shape1 = shape2*p.experiment/(1-p.experiment) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
+            p.experiment.ind = sort(rbeta(n=(2*n), shape1 = shape1, shape2 = shape2), decreasing = TRUE) #individual probability with mean of p.experiment, in decreasing order
+            outcome1 = rbinom(2*n, 1, prob=p.experiment.ind) #increasing confounder value will have decreasing probability for outcome 
             
-            shape1<- shape2*p.stdcare/(1-p.stdcare) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
-            p.stdcare.ind<-sort(rbeta(n=(2*n), shape1 = shape1, shape2 = shape2), decreasing = TRUE) #individual probability with mean of p.experiment, in increasing order
-            outcome0<- rbinom(2*n, 1, prob=p.stdcare.ind) #increasing confounder value will have decreasing probability for outcome 
+            shape1 = shape2*p.stdcare/(1-p.stdcare) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
+            p.stdcare.ind = sort(rbeta(n=(2*n), shape1 = shape1, shape2 = shape2), decreasing = TRUE) #individual probability with mean of p.experiment, in increasing order
+            outcome0 = rbinom(2*n, 1, prob=p.stdcare.ind) #increasing confounder value will have decreasing probability for outcome 
           }
           
-          d<-matrix(data=c(id, randomisation, confounder), nrow=(2*n))
-          d.ordered<-matrix(cbind(d[order(d[,3]),], outcome0, outcome1),ncol=5)#order confounder in ascending order 
-          d.grouped<-rbind(d.ordered[which(d.ordered[,2]==1),], d.ordered[which(d.ordered[,2]==0),])
+          d = matrix(data=c(id, randomisation, confounder), nrow=(2*n))
+          d.ordered = matrix(cbind(d[order(d[,3]),], outcome0, outcome1),ncol=5)#order confounder in ascending order 
+          d.grouped = rbind(d.ordered[which(d.ordered[,2]==1),], d.ordered[which(d.ordered[,2]==0),])
           
           #INTERVENTION dependent on randomisation and confounders
           if (confounder.intervention=="Increase probability") {
-            shape2<-runif(1, min=2, max=10)
-            shape1<- shape2*comply.experiment/(1-comply.experiment) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
-            comply.experiment.ind<-sort(rbeta(n=n, shape1 = shape1, shape2 = shape2)) #individual probability with mean of p.experiment, in increasing order
-            int.intervention<- rbinom(n, 1, prob=comply.experiment.ind) #increasing confounder value will have decreasing probability for intervention
+            shape2 = runif(1, min=2, max=10)
+            shape1 = shape2*comply.experiment/(1-comply.experiment) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
+            comply.experiment.ind = sort(rbeta(n=n, shape1 = shape1, shape2 = shape2)) #individual probability with mean of p.experiment, in increasing order
+            int.intervention = rbinom(n, 1, prob=comply.experiment.ind) #increasing confounder value will have decreasing probability for intervention
             
-            shape1<- shape2*(1-comply.stdcare)/(1-(1-comply.stdcare)) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
-            comply.stdcare.ind<-sort(rbeta(n=n, shape1 = shape1, shape2 = shape2)) #individual probability with mean of p.experiment, in increasing order
-            cont.intervention<- rbinom(n, 1, prob=comply.stdcare.ind)
+            shape1 = shape2*(1-comply.stdcare)/(1-(1-comply.stdcare)) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
+            comply.stdcare.ind = sort(rbeta(n=n, shape1 = shape1, shape2 = shape2)) #individual probability with mean of p.experiment, in increasing order
+            cont.intervention = rbinom(n, 1, prob=comply.stdcare.ind)
             
           } else {
-            shape2<-runif(1, min=2, max=10)
-            shape1<- shape2*comply.experiment/(1-comply.experiment) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
-            comply.experiment.ind<-sort(rbeta(n=n, shape1 = shape1, shape2 = shape2),decreasing = TRUE) #individual probability with mean of p.experiment, in increasing order
-            int.intervention<- rbinom(n, 1, prob=comply.experiment.ind) #increasing confounder value will have decreasing probability for outcome 
+            shape2 = runif(1, min=2, max=10)
+            shape1 = shape2 * comply.experiment/(1-comply.experiment) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
+            comply.experiment.ind = sort(rbeta(n=n, shape1 = shape1, shape2 = shape2),decreasing = TRUE) #individual probability with mean of p.experiment, in increasing order
+            int.intervention = rbinom(n, 1, prob=comply.experiment.ind) #increasing confounder value will have decreasing probability for outcome 
             
-            shape1<- shape2*comply.stdcare/(1-comply.stdcare) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
-            comply.stdcare.ind<-sort(rbeta(n=n, shape1 = shape1, shape2 = shape2)) #individual probability with mean of p.experiment, in increasing order
-            cont.intervention<- rbinom(n, 1, prob=1-comply.stdcare.ind)
+            shape1 = shape2 * comply.stdcare/(1-comply.stdcare) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
+            comply.stdcare.ind = sort(rbeta(n=n, shape1 = shape1, shape2 = shape2)) #individual probability with mean of p.experiment, in increasing order
+            cont.intervention = rbinom(n, 1, prob=1-comply.stdcare.ind)
           }
           
           intervention<-c(int.intervention,cont.intervention)
           
           #ACTUAL OUTCOMES depend on intervention
-          outcome<-getoutcome(vector.outcome1=d.grouped[,5], vector.outcome0=d.grouped[,4], intervention)
+          outcome = getoutcome(vector.outcome1=d.grouped[,5], vector.outcome0=d.grouped[,4], intervention)
           
-          simdata<-matrix(cbind(d.grouped[,c(-4,-5)],intervention,outcome), ncol=5)
+          simdata = matrix(cbind(d.grouped[,c(-4,-5)],intervention,outcome), ncol=5)
           
           ## intention to treat 
           pz1.value = mean(simdata[which(simdata[,2]==1),][,5])
           pz0.value = mean(simdata[which(simdata[,2]==0),][,5])
           eff.itt = pz1.value-pz0.value
-          var.eff.itt<- pz1.value*(1-pz1.value)/n + pz0.value*(1-pz0.value)/n
-          CI.itt<- eff.itt + z*sqrt(var.eff.itt)
-          itt<-CI.itt<NImargin
+          var.eff.itt = pz1.value*(1-pz1.value)/n + pz0.value*(1-pz0.value)/n
+          CI.itt = eff.itt + z*sqrt(var.eff.itt)
+          itt = CI.itt < NImargin
           
           ## per protocol 
           pp = simdata[which(simdata[,2]==simdata[,4]),] # perprotocol population
@@ -467,9 +471,9 @@ server <- function(input, output,session) {
           p.stdcare.vector= pp[which(pp[,2]==0),][,5]
           p.stdcare.value= mean(p.stdcare.vector) 
           eff.pp = p.experiment.value-p.stdcare.value
-          var.eff.pp <- p.experiment.value*(1-p.experiment.value)/length(p.experiment.vector) + p.stdcare.value*(1-p.stdcare.value)/length(p.stdcare.vector)
-          CI.pp<- eff.pp + z*sqrt(var.eff.pp)
-          ppp<- CI.pp<NImargin
+          var.eff.pp = p.experiment.value*(1-p.experiment.value)/length(p.experiment.vector) + p.stdcare.value*(1-p.stdcare.value)/length(p.stdcare.vector)
+          CI.pp = eff.pp + z*sqrt(var.eff.pp)
+          ppp = CI.pp<NImargin
           
           ## inverse probability weights on per protocol patients 
           pp=as.data.frame(pp)
@@ -479,18 +483,18 @@ server <- function(input, output,session) {
           weight= pp$intervention*mean(pp$intervention)/score+(1-pp$intervention)*(1-mean(pp$intervention))/(1-score)#create stabilized weights, using a null model with intervention as the dependent variable
           outcomemodel=glm(outcome~intervention, family=binomial(link="identity"), weights=weight, data=pp) #identity link for risk difference
           eff.mpp=coef(outcomemodel)[2]
-          se<-sqrt(diag(vcovHC(outcomemodel,type="HC0")))[2]
-          CI.mpp<-eff.mpp+z*se
-          mpp<- CI.mpp<NImargin
+          se = sqrt(diag(vcovHC(outcomemodel,type="HC0")))[2]
+          CI.mpp = eff.mpp + z * se
+          mpp = CI.mpp<NImargin
           
           # iv with 2 stage regression
-          asmm <- gmm(simdata[,5] ~ simdata[,4], x=simdata[,2], vcov="iid")
+          asmm = gmm(simdata[,5] ~ simdata[,4], x=simdata[,2], vcov="iid")
           eff.iv=summary(asmm)$ coefficients [2,1]
-          se<-summary(asmm)$coefficients [2,2]
-          CI.iv<-eff.iv + z*se
-          iv<- CI.iv<NImargin
+          se = summary(asmm)$coefficients [2,2]
+          CI.iv = eff.iv + z * se
+          iv = CI.iv<NImargin
           
-          power.iter[[l]]<-c(itt,ppp, mpp,iv)
+          power.iter[[l]] = c(itt,ppp, mpp,iv)
           
           # Increment the progress bar, and update the detail text.
           incProgress(1/nIterations, detail = paste("Iteration number (out of 1000 iterations)", l))
@@ -499,8 +503,8 @@ server <- function(input, output,session) {
       }
       
       # mean of power from iterated data 
-      power.matrixC=matrix(as.numeric(unlist(power.iter)), nrow=nIterations, ncol=4,byrow = TRUE)
-      power.calC= colMeans(power.matrixC, na.rm = TRUE)
+      power.matrixC = matrix(as.numeric(unlist(power.iter)), nrow=nIterations, ncol=4,byrow = TRUE)
+      power.calC = colMeans(power.matrixC, na.rm = TRUE)
     })
     
     Name = c("Number of participants per arm", 
@@ -539,6 +543,5 @@ server <- function(input, output,session) {
   
 }
 
-shinyApp(ui = ui, server = server)
 # Run the application 
 shinyApp(ui = ui, server = server)
