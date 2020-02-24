@@ -883,8 +883,8 @@ ggarrange(a, b, c, d, ncol=2, nrow = 2)
 ##0.970 instead of 0.975 still too small 
 
 ########################################################################
-############using SD from the simulated disgribution instead############
-setwd("/Users/moyin/Documents/nBox/git_projects/NItrialsimulation/") #set working directory 
+############using SD from the simulated distribution instead############
+setwd("/Users/moyin/Documents/nBox/git_projects/NItrialsimulation/archive/") #set working directory 
 source(file = 'simulationcode_200120.R')
 
 interval=1
@@ -1203,7 +1203,7 @@ sdcsim= sd.confounding.sim(n=505, p.experiment=0.4, p.stdcare=0.3, p.alt=0.5, NI
 mean(unlist(sdcsim))
 mean(unlist(sdncsim))
 
-###EXPlore effect of iterations on estimates 
+###Explore effect of iterations on estimates 
 est.nonconfounding.sim <- function(n, p.experiment, p.stdcare, p.alt, nIterations, interval, nonadhere.pop, cross.over){  
   z = qnorm(0.975)
   
@@ -1358,20 +1358,26 @@ ub.confounding.sim <- function(n, p.experiment, p.stdcare, p.alt, NImargin, conf
   # pp = (unlist(df[4]))
   # 
   # for upper bounds
-  itt = (unlist(df[2])) + z * sd(unlist(df[2]))
-  iv = (unlist(df[1] )) + z * sd(unlist(df[1]))
-  mpp =(unlist(df[3] )) + z * sd(unlist(df[3]))
-  pp = (unlist(df[4] ))+ z * sd(unlist(df[4]))
+  # itt = (unlist(df[2])) + z * sd(unlist(df[2]))
+  # iv = (unlist(df[1] )) + z * sd(unlist(df[1]))
+  # mpp =(unlist(df[3] )) + z * sd(unlist(df[3]))
+  # pp = (unlist(df[4] ))+ z * sd(unlist(df[4]))
+  
+  #for SD 
+  itt = sd(unlist(df[2]))
+  iv =  sd(unlist(df[1]))
+  mpp =sd(unlist(df[3]))
+  pp = sd(unlist(df[4]))
   
   return(list(itt, iv, mpp, pp))
   
 }
 
 ubncsim = ub.nonconfounding.sim(n=505, p.experiment=0.4, p.stdcare=0.4, p.alt=0.5, nIterations=3000, interval=interval, nonadhere.pop='both', cross.over=T)
-ubcsim= ub.confounding.sim(n=505, p.experiment=0.4, p.stdcare=0.4, p.alt=0.5, NImargin=0.1, confounder.intervention='Increase likelihood', confounder.outcome='Increase likelihood', interval=interval, nIterations=3000, cross.over=T, nonadhere.pop='both')
+ubcsim= ub.confounding.sim(n=505, p.experiment=0.4, p.stdcare=0.4, p.alt=0.5, NImargin=0.1, confounder.intervention='Increase likelihood', confounder.outcome='Increase likelihood', interval=interval, nIterations=7000, cross.over=T, nonadhere.pop='both')
 plot(density(unlist(ubncsim[1])))
 summary(unlist(ubcsim[1]))
-plot(density(unlist(ubcsim[1])))
+lines(density(unlist(ubcsim[1])))
 
 dat = data.frame(dens = c(unlist(ubncsim[[1]]), unlist(ubcsim[[1]])), lines = rep(c("nc", "c"), each =3000) )
 ggplot(dat, aes(x = dens, fill = lines)) + geom_density(alpha = 0.5)+ 
