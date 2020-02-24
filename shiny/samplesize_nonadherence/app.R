@@ -476,6 +476,9 @@ server <- function(input, output, session) {
       #make up vectors for simulations
       estimate.iter = c()
       
+      #make dummy outcome2 if crossover
+      if (nonadhere.tx == 1) { p.alt = 0 }
+      
       #number of iterations
       nIterations = 1000
       
@@ -591,6 +594,9 @@ server <- function(input, output, session) {
       #make up vectors for simulations
       estimate.iter = eff.conf.outcome = c()
       
+      #make dummy outcome2 if crossover
+      if (nonadhere.tx == 1) { p.alt = 0 }
+      
       #number of iterations
       nIterations = 1000
       
@@ -636,6 +642,8 @@ server <- function(input, output, session) {
               p.alt.ind = p.alt.ind.gen[order(p.alt.ind.gen)]
               
               outcome2 = rbinom(2 * n, 1, prob = p.alt.ind) #increasing confounder value will have increasing probability for outcome
+            } else {
+              outcome2 = rbinom(2 * n, prob = p.alt, size = 1)
             }
             
           } else {
@@ -657,6 +665,8 @@ server <- function(input, output, session) {
               p.alt.ind = p.alt.ind.gen[order(p.alt.ind.gen, decreasing = TRUE)]
               
               outcome2 = rbinom(2 * n, 1, prob = p.alt.ind) #increasing confounder value will have decreasing probability for outcome
+            } else {
+              outcome2 = rbinom(2 * n, prob = p.alt, size = 1)
             }
           }
           
