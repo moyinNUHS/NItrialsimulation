@@ -98,7 +98,7 @@ analysis.unknown <- function(simdata){
 }
 
 sim.analysis <- function(nonconfounding, bias, nonadhere.pop, interval, cross.over, 
-                         confounder.intervention, confounder.outcome, NImargin){
+                         confounder.intervention, confounder.outcome, confounder.eff, NImargin){
   
   #make up vectors for simulations 
   .estimate = c() #output from each simulation
@@ -123,7 +123,9 @@ sim.analysis <- function(nonconfounding, bias, nonadhere.pop, interval, cross.ov
         if (nonconfounding == 'nonconfounding') { #simulate data 
           simdata = simdata.nonconfounding(n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, nonadhere.pop = nonadhere.pop, adhere.experiment = adhere.experiment, adhere.stdcare = adhere.stdcare, cross.over = cross.over, i=i)
         } else  if (nonconfounding == 'confounding' ) {
-          simdata = simdata.confounding(n = n, p.experiment = p.experiment, p.stdcare= p.stdcare, p.alt = p.alt, cross.over = cross.over, nonadhere.pop = nonadhere.pop, adhere.experiment = adhere.experiment, adhere.stdcare = adhere.stdcare, confounder.outcome = confounder.outcome, confounder.intervention = confounder.intervention, i=i)
+          simdata = simdata.confounding(n = n, p.experiment = p.experiment, p.stdcare= p.stdcare, p.alt = p.alt, cross.over = cross.over, nonadhere.pop = nonadhere.pop, adhere.experiment = adhere.experiment, adhere.stdcare = adhere.stdcare, 
+                                        confounder.outcome = confounder.outcome, confounder.intervention = confounder.intervention, 
+                                        confounder.eff = confounder.eff, i=i)
         } else {
           simdata = simdata.unknownconfounding(n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = cross.over, nonadhere.pop = nonadhere.pop, i=i, adhere.experiment = adhere.experiment, adhere.stdcare = adhere.stdcare, confounder.outcome = confounder.outcome, confounder.intervention = confounder.intervention)
         }
@@ -147,8 +149,6 @@ sim.analysis <- function(nonconfounding, bias, nonadhere.pop, interval, cross.ov
       sd.vector = unlist(apply(estimate[[i]], 2, sd))
       #get upper bounds of 95%CI for each iteration of every interval
       ub = estimate[[i]] + qnorm(0.975) * rep(sd.vector, each = nIterations)
-      #get critical values for each interval
-      z.vector = unlist(apply(ub, 2, function (x) quantile(x, probs = 0.025)))
       
       t1[[i]] = colMeans(ub < NImargin)
     }

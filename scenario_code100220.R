@@ -37,11 +37,13 @@ type1.nonconfounding <-  function(n, p.experiment, p.alt, nIterations, interval,
 ##################### Non-adherence caused by confounding process  ################################
 ###################################################################################################
 #BIAS
-bias.confounding <- function(n, p.experiment, p.stdcare, p.alt, confounder.intervention, confounder.outcome, interval, nIterations, nonadhere.pop, cross.over, true.effect, ymin, ymax){  
+bias.confounding <- function(n, p.experiment, p.stdcare, p.alt, confounder.intervention, confounder.outcome, interval, nIterations, 
+                             nonadhere.pop, cross.over, true.effect, confounder.eff, ymin, ymax){  
   
   #get estimates for each interval over nIterations
   estimate.df = sim.analysis(nonconfounding = 'confounding', bias = T, nonadhere.pop = nonadhere.pop, interval = interval, cross.over = cross.over, 
-                             confounder.intervention = confounder.intervention, confounder.outcome = confounder.outcome, NImargin = NImargin)
+                             confounder.intervention = confounder.intervention, confounder.outcome = confounder.outcome, 
+                             confounder.eff = confounder.eff, NImargin = NImargin)
   
   #plot
   bias.plot = plot.eff.multi(estimate = estimate.df, cross.over = cross.over, ymin = ymin, ymax = ymax)
@@ -50,14 +52,16 @@ bias.confounding <- function(n, p.experiment, p.stdcare, p.alt, confounder.inter
 } 
 
 #TYPE 1 ERROR
-type1.confounding <- function(n, p.experiment, p.alt, NImargin, confounder.intervention, confounder.outcome, interval, nIterations, cross.over, nonadhere.pop){  
+type1.confounding <- function(n, p.experiment, p.alt, NImargin, confounder.intervention, confounder.outcome, interval, nIterations, 
+                              cross.over, nonadhere.pop, confounder.eff){  
   
   ##build simulated data based on null hypothesis pshort-plong >= +NI (mortality or recurrences)
   p.stdcare = p.experiment-NImargin 
   
   #get estimates for each interval over nIterations
   df = sim.analysis(nonconfounding = 'confounding', bias = F, nonadhere.pop = nonadhere.pop, interval = interval, cross.over = cross.over, 
-                    confounder.intervention = confounder.intervention, confounder.outcome = confounder.outcome, NImargin = NImargin)
+                    confounder.intervention = confounder.intervention, confounder.outcome = confounder.outcome, confounder.eff = confounder.eff,
+                    NImargin = NImargin)
   
   plot = plot.t1(df = df, cross.over = cross.over)
   

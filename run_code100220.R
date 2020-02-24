@@ -13,8 +13,9 @@ p.experiment= 0.4
 p.stdcare = 0.3
 p.alt = 0.5
 true.effect = p.experiment-p.stdcare
-nIterations = 500
+nIterations = 5
 NImargin = 0.1
+confounder.eff = 3
 
 width = 15
 height = 10
@@ -30,16 +31,20 @@ ggsave(filename = paste("case1.cross", Sys.Date(), ".jpeg"), width = width, heig
 
 #Run simulations for case 2: Non-adherence caused by confounding process (affect both groups)
 ## higher value of confounder makes intervention less likely, outcome more likely
-b2both1.cross <- bias.confounding (n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = T, interval = interval,confounder.intervention = "Decrease likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "both", true.effect=true.effect, ymin = -0.15, ymax = 0.3)
-t2both1.cross <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = T, NImargin = NImargin,  confounder.intervention = "Decrease likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, interval = interval, nonadhere.pop = "both")
+b2both1.cross <- bias.confounding (n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = T, interval = interval,confounder.intervention = "Decrease likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "both", 
+                                  confounder.eff = confounder.eff, true.effect=true.effect, ymin = -0.15, ymax = 0.3)
+t2both1.cross <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = T, NImargin = NImargin,  confounder.intervention = "Decrease likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, interval = interval, nonadhere.pop = "both",
+                                  confounder.eff = confounder.eff)
 case2.cross <- ggarrange(b2both1.cross, t2both1.cross, ncol = 2, labels = c('A','B'), 
                     common.legend = TRUE, legend = "bottom" )
 ggsave(filename = paste("case2.cross", Sys.Date(), ".jpeg"), width = width, height = height, units = "in")
 
 ## Run simulations for case 3: Non-adherence caused by confounding process (affect both groups)
 ## higher value of confounder makes intervention more likely, outcome more likely
-b2both2.cross <- bias.confounding(n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = T, interval = interval,confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "both", true.effect=true.effect,ymin = -0.2, ymax = 0.4)
-t2both2.cross <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = T, NImargin = NImargin,  confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, interval = interval, nonadhere.pop = "both")
+b2both2.cross <- bias.confounding(n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = T, interval = interval,
+                                  confounder.eff = confounder.eff, confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "both", true.effect=true.effect,ymin = -0.2, ymax = 0.4)
+t2both2.cross <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = T, NImargin = NImargin,
+                                   confounder.eff = confounder.eff, confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, interval = interval, nonadhere.pop = "both")
 case3.cross <- ggarrange(b2both2.cross, t2both2.cross, ncol = 2, labels = c('A','B'), 
                  common.legend = TRUE, legend = "bottom" )
 ggsave(filename = paste("case3.cross", Sys.Date(), ".jpeg"), width = width, height = height, units = "in")
@@ -91,36 +96,46 @@ ggsave(filename = paste("S2f.inf", Sys.Date(), ".jpeg"), width = width, height =
 ##higher value of confounder makes intervention less likely, outcome more likely
 #both groups 
 #non adherent participants receive inferior treatment 
-b2both1.inf.2h <- bias.confounding (n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = F, interval = interval,confounder.intervention = "Decrease likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "both", true.effect=true.effect, ymin = -0.15, ymax = 0.3)
-t2both1.inf.2h <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = F, NImargin = NImargin,  confounder.intervention = "Decrease likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations*3, interval = interval, nonadhere.pop = "both")
+b2both1.inf.2h <- bias.confounding (n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = F, interval = interval,
+                                    confounder.eff = confounder.eff, confounder.intervention = "Decrease likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "both", true.effect=true.effect, ymin = -0.15, ymax = 0.3)
+t2both1.inf.2h <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = F, NImargin = NImargin, 
+                                    confounder.eff = confounder.eff, confounder.intervention = "Decrease likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations*3, interval = interval, nonadhere.pop = "both")
 case2.inf.2h <- ggarrange(b2both1.inf.2h, t2both1.inf.2h, ncol = 2, labels = c('A','B'), 
                      common.legend = TRUE, legend = "bottom" )
 ggsave(filename = paste("case2.inf.2h", Sys.Date(), ".jpeg"), width = width, height = height, units = "in")
 
 #experimental group 
 # cross over
-b2both1.S2i <- bias.confounding (n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = T, interval = interval,confounder.intervention = "Decrease likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "experimental", true.effect=true.effect, ymin = -0.15, ymax = 0.3)
-t2both1.S2i <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = T, NImargin = NImargin,  confounder.intervention = "Decrease likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations*3, interval = interval, nonadhere.pop = "experimental")
+b2both1.S2i <- bias.confounding (n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = T, interval = interval,
+                                 confounder.eff = confounder.eff, confounder.intervention = "Decrease likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "experimental", true.effect=true.effect, ymin = -0.15, ymax = 0.3)
+t2both1.S2i <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = T, NImargin = NImargin,
+                                 confounder.eff = confounder.eff, confounder.intervention = "Decrease likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations*3, interval = interval, nonadhere.pop = "experimental")
 S2i.cross <- ggarrange(b2both1.S2i, t2both1.S2i, ncol = 2, labels = c('A','B'), 
                        common.legend = TRUE, legend = "bottom" )
 ggsave(filename = paste("S2i.cross", Sys.Date(), ".jpeg"), width = width, height = height, units = "in")
 #non adherent participants receive inferior treatment 
-b2both1.S2j <- bias.confounding (n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = F, interval = interval, confounder.intervention = "Decrease likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "experimental", true.effect=true.effect, ymin = -0.15, ymax = 0.3)
-t2both1.S2j <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = F, NImargin = NImargin, confounder.intervention = "Decrease likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations*3, interval = interval, nonadhere.pop = "experimental")
+b2both1.S2j <- bias.confounding (n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = F, interval = interval, 
+                                 confounder.eff = confounder.eff, confounder.intervention = "Decrease likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "experimental", true.effect=true.effect, ymin = -0.15, ymax = 0.3)
+t2both1.S2j <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = F, NImargin = NImargin, confounder.intervention = "Decrease likelihood", 
+                                 confounder.eff = confounder.eff, confounder.outcome = "Increase likelihood", nIterations = nIterations*3, interval = interval, nonadhere.pop = "experimental")
 S2j.inf <- ggarrange(b2both1.S2j, t2both1.S2j, ncol = 2, labels = c('A','B'), 
                      common.legend = TRUE, legend = "bottom" )
 ggsave(filename = paste("S2j.inf", Sys.Date(), ".jpeg"), width = width, height = height, units = "in")
 
 #control group 
 #cross over
-b2both1.S2k <- bias.confounding (n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = T, interval = interval,confounder.intervention = "Decrease likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "stdcare", true.effect=true.effect, ymin = -0.15, ymax = 0.3)
-t2both1.S2k <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = T, NImargin = NImargin,  confounder.intervention = "Decrease likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations*3, interval = interval, nonadhere.pop = "stdcare")
+b2both1.S2k <- bias.confounding (n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = T, interval = interval,
+                                 confounder.eff = confounder.eff, confounder.intervention = "Decrease likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "stdcare", true.effect=true.effect, ymin = -0.15, ymax = 0.3)
+t2both1.S2k <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = T, NImargin = NImargin, 
+                                 confounder.eff = confounder.eff, confounder.intervention = "Decrease likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations*3, interval = interval, nonadhere.pop = "stdcare")
 S2k.cross <- ggarrange(b2both1.S2k, t2both1.S2k, ncol = 2, labels = c('A','B'), 
                      common.legend = TRUE, legend = "bottom" )
 ggsave(filename = paste("S2k.cross", Sys.Date(), ".jpeg"), width = width, height = height, units = "in")
 #non adherent participants receive inferior treatment 
-b2both1.S2l <- bias.confounding (n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = F, interval = interval,confounder.intervention = "Decrease likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "stdcare", true.effect=true.effect, ymin = -0.15, ymax = 0.3)
-t2both1.S2l <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = F, NImargin = NImargin,  confounder.intervention = "Decrease likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations*3, interval = interval, nonadhere.pop = "stdcare")
+b2both1.S2l <- bias.confounding (n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = F, interval = interval,
+                                 confounder.eff = confounder.eff, confounder.intervention = "Decrease likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "stdcare", true.effect=true.effect, ymin = -0.15, ymax = 0.3)
+t2both1.S2l <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = F, NImargin = NImargin, 
+                                 confounder.eff = confounder.eff, confounder.intervention = "Decrease likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations*3, interval = interval, nonadhere.pop = "stdcare")
 S2l.inf <- ggarrange(b2both1.S2l, t2both1.S2l, ncol = 2, labels = c('A','B'), 
                    common.legend = TRUE, legend = "bottom" )
 ggsave(filename = paste("S2l.inf", Sys.Date(), ".jpeg"), width = width, height = height, units = "in")
@@ -128,36 +143,46 @@ ggsave(filename = paste("S2l.inf", Sys.Date(), ".jpeg"), width = width, height =
 ##higher value of confounder makes intervention and outcome more likely
 #both groups
 #non adherent participants receive inferior treatment 
-b2both2.inf.2n <- bias.confounding (n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = F, interval = interval,confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "both", true.effect=true.effect,ymin = -0.2, ymax = 0.4)
-t2both2.inf.2n <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = F, NImargin = NImargin,  confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations*3, interval = interval, nonadhere.pop = "both")
+b2both2.inf.2n <- bias.confounding (n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = F, interval = interval,
+                                    confounder.eff = confounder.eff, confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "both", true.effect=true.effect,ymin = -0.2, ymax = 0.4)
+t2both2.inf.2n <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = F, NImargin = NImargin, 
+                                    confounder.eff = confounder.eff, confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations*3, interval = interval, nonadhere.pop = "both")
 case3.inf.2n <- ggarrange(b2both2.inf.2n, t2both2.inf.2n, ncol = 2, labels = c('A','B'), 
                      common.legend = TRUE, legend = "bottom" )
 ggsave(filename = paste("case3.inf.2n", Sys.Date(), ".jpeg"), width = width, height = height, units = "in")
 
 #experimental group 
 #cross over
-b2both1.S2o <- bias.confounding (n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = T, interval = interval,confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "experimental", true.effect=true.effect, ymin = -0.15, ymax = 0.3)
-t2both1.S2o <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = T, NImargin = NImargin,  confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations*3, interval = interval, nonadhere.pop = "experimental")
+b2both1.S2o <- bias.confounding (n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = T, interval = interval,
+                                 confounder.eff = confounder.eff, confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "experimental", true.effect=true.effect, ymin = -0.15, ymax = 0.3)
+t2both1.S2o <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = T, NImargin = NImargin,
+                                 confounder.eff = confounder.eff, confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations*3, interval = interval, nonadhere.pop = "experimental")
 S2o.cross <- ggarrange(b2both1.S2o, t2both1.S2o, ncol = 2, labels = c('A','B'), 
                      common.legend = TRUE, legend = "bottom" )
 ggsave(filename = paste("S2o.cross", Sys.Date(), ".jpeg"), width = width, height = height, units = "in")
 #non adherent participants receive inferior treatment 
-b2both1.S2p <- bias.confounding (n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = F, interval = interval,confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "experimental", true.effect=true.effect, ymin = -0.15, ymax = 0.3)
-t2both1.S2p <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = F, NImargin = NImargin,  confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations*3, interval = interval, nonadhere.pop = "experimental")
+b2both1.S2p <- bias.confounding (n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = F, interval = interval,
+                                 confounder.eff = confounder.eff, confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "experimental", true.effect=true.effect, ymin = -0.15, ymax = 0.3)
+t2both1.S2p <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = F, NImargin = NImargin,
+                                 confounder.eff = confounder.eff, confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations*3, interval = interval, nonadhere.pop = "experimental")
 S2p.inf <- ggarrange(b2both1.S2p, t2both1.S2p, ncol = 2, labels = c('A','B'), 
                    common.legend = TRUE, legend = "bottom" )
 ggsave(filename = paste("S2p.inf", Sys.Date(), ".jpeg"), width = width, height = height, units = "in")
 
 #control group 
 #cross over
-b2both1.S2q <- bias.confounding (n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = T, interval = interval,confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "stdcare", true.effect=true.effect, ymin = -0.15, ymax = 0.3)
-t2both1.S2q <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = T, NImargin = NImargin,  confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations*3, interval = interval, nonadhere.pop = "stdcare")
+b2both1.S2q <- bias.confounding (n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = T, interval = interval,
+                                 confounder.eff = confounder.eff, confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "stdcare", true.effect=true.effect, ymin = -0.15, ymax = 0.3)
+t2both1.S2q <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = T, NImargin = NImargin,
+                                 confounder.eff = confounder.eff, confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations*3, interval = interval, nonadhere.pop = "stdcare")
 S2q.cross <- ggarrange(b2both1.S2q, t2both1.S2q, ncol = 2, labels = c('A','B'), 
                      common.legend = TRUE, legend = "bottom" )
 ggsave(filename = paste("S2q.cross", Sys.Date(), ".jpeg"), width = width, height = height, units = "in")
 #non adherent participants receive inferior treatment 
-b2both1.S2r <- bias.confounding (n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = F, interval = interval,confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "stdcare", true.effect=true.effect, ymin = -0.15, ymax = 0.3)
-t2both1.S2r <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = F, NImargin = NImargin,  confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations*3, interval = interval, nonadhere.pop = "stdcare")
+b2both1.S2r <- bias.confounding (n = n, p.experiment = p.experiment, p.stdcare = p.stdcare, p.alt = p.alt, cross.over = F, interval = interval,
+                                 confounder.eff = confounder.eff, confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations, nonadhere.pop = "stdcare", true.effect=true.effect, ymin = -0.15, ymax = 0.3)
+t2both1.S2r <- type1.confounding(n = n, p.experiment = p.experiment, p.alt = p.alt, cross.over = F, NImargin = NImargin,
+                                 confounder.eff = confounder.eff, confounder.intervention = "Increase likelihood", confounder.outcome = "Increase likelihood", nIterations = nIterations*3, interval = interval, nonadhere.pop = "stdcare")
 S2r.inf <- ggarrange(b2both1.S2r, t2both1.S2r, ncol = 2, labels = c('A','B'), 
                    common.legend = TRUE, legend = "bottom" )
 ggsave(filename = paste("S2r.inf", Sys.Date(), ".jpeg"), width = width, height = height, units = "in")

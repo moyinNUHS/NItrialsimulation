@@ -29,23 +29,34 @@ simdata.nonconfounding <- function(n, p.experiment, p.stdcare, p.alt, nonadhere.
   }
   
   #ACTUAL OUTCOMES depend on intervention
-  outcome = getoutcome(outcome0, outcome1, outcome2, intervention = intervention)
+  outcome = getoutcome(outcome0, outcome1, outcome2, intervention)
   simdata = matrix(data = c(pt.id, randomisation, confounder, intervention, outcome), nrow = 2 * n)
 
   return(simdata)
 }
 
-simdata.confounding <- function(n, p.experiment, p.stdcare, p.alt, nonadhere.pop, confounder.outcome, confounder.intervention, adhere.experiment, adhere.stdcare, cross.over, i){
+#degree of effect of confounder on outcome
+eff.conf.df = read.csv(file = 'shiny/samplesize_nonadherence/eff.conf.outcome.tab.csv')[,-1]
+
+simdata.confounding <- function(n, p.experiment, p.stdcare, p.alt, nonadhere.pop, 
+                                confounder.outcome, confounder.intervention, adhere.experiment, adhere.stdcare, 
+                                cross.over, confounder.eff, i){
   
   pt.id = 1 : (2 * n) #create participant id
   randomisation = sample(rep(0:1, n)) #randomisation
   confounder = rbeta(n = 2 * n, shape1 = 2, shape2 = 2) #confounder beta distribution ranging 0-1 
   
+  p.experiment.rnd = round(p.experiment/0.05) * 0.05
+  conf.df.inp = eff.conf.df[which(eff.conf.df$coef.lower == (abs(confounder.eff) - 0.25)),]
+  conf.df.inpt = conf.df.inp[which(as.character(conf.df.inp$p) == as.character(p.experiment.rnd)),]
+  shape2min = conf.df.inpt$shape.min
+  shape2max = conf.df.inpt$shape.max
+  
   #COUNTERFACTUAL OUTCOMES with or without intervention (dependent on confounders and intervention)
+  shape2 = runif(1, min = shape2min, max = shape2max)
   if (confounder.outcome=="Increase likelihood") {
     #probability of outcome is drawn from beta distribution shape1<1 and shape2<1 (U shaped) such that confounder correlates with outcome 
-    shape2 = runif(1)
-    
+
     shape1 = shape2*p.stdcare / (1 - p.stdcare) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
     p.stdcare.ind = sort(rbeta(n=(2 * n), shape1 = shape1, shape2 = shape2)) #individual probability with mean of p.stdcare, in increasing order
     outcome0 =  rbinom(2 * n, 1, prob = p.stdcare.ind) #increasing confounder value will have increasing probability for outcome 
@@ -129,20 +140,18 @@ simdata.unknownconfounding <- function(n, p.experiment, p.stdcare, p.alt, nonadh
   confounder = known + unknown1 + unknown2 + unknown3
   
   #COUNTERFACTUAL OUTCOMES with or without intervention (dependent on confounders and intervention)
+  shape2 = runif(1)
   if (confounder.outcome=="Increase likelihood") {
     #probability of outcome is drawn from beta distribution shape1<1 and shape2<1 (U shaped) such that confounder correlates with outcome 
-    shape2 = runif(1)
-    
-    shape1 = shape2*p.experiment / (1 - p.experiment) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
+    shape1 = shape2 * p.experiment / (1 - p.experiment) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
     p.experiment.ind = sort(rbeta(n=(2 * n), shape1 = shape1, shape2 = shape2)) #individual probability with mean of p.experiment, in increasing order
     outcome1 = rbinom(2 * n, 1, prob = p.experiment.ind) #increasing confounder value will have increasing probability for outcome 
     
-    shape1 = shape2*p.stdcare / (1 - p.stdcare) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
+    shape1 = shape2 * p.stdcare / (1 - p.stdcare) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
     p.stdcare.ind = sort(rbeta(n=(2 * n), shape1 = shape1, shape2 = shape2)) #individual probability with mean of p.experiment, in increasing order
     outcome0 = rbinom(2 * n, 1, prob = p.stdcare.ind) #increasing confounder value will have increasing probability for outcome 
     
   } else {
-    shape2 = runif(1)
     shape1 = shape2*p.experiment / (1 - p.experiment) #mean of beta distribution is a/(a+b), a is shape1, b is shape2
     p.experiment.ind = sort(rbeta(n = (2 * n), shape1 = shape1, shape2 = shape2), decreasing = TRUE) #individual probability with mean of p.experiment, in decreasing order
     outcome1 = rbinom(2 * n, 1, prob = p.experiment.ind) #increasing confounder value will have decreasing probability for outcome 

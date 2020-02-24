@@ -11,7 +11,6 @@ library(survey); library(gmm) #for analysis
 library(ggpubr); library(ggplot2); library(gridExtra); library(plotly) #for plots 
 
 # source necessary codes
-sourceCpp('shiny/samplesize_nonadherence/rcpp.cpp')
 source('simdata_code100220.R')
 source('analysis_code100220.R')
 source('scenario_code100220.R')
@@ -33,6 +32,5 @@ getoutcome.unknownconfounding.multi<-function(vector.outcome1, vector.outcome0, 
   return(unlist(outcome))
 }
 
-
-
+sourceCpp('shiny/samplesize_nonadherence/rcpp.cpp')
 
