@@ -29,7 +29,7 @@ simdata.nonconfounding <- function(n, p.experiment, p.stdcare, p.alt, nonadhere.
   }
   
   #ACTUAL OUTCOMES depend on intervention
-  outcome = getoutcome(outcome0 = outcome0, outcome1=outcome1, outcome2 = outcome2, intervention = intervention)
+  outcome = getoutcome(outcome0, outcome1, outcome2, intervention = intervention)
   simdata = matrix(data = c(pt.id, randomisation, confounder, intervention, outcome), nrow = 2 * n)
 
   return(simdata)
@@ -112,7 +112,7 @@ simdata.confounding <- function(n, p.experiment, p.stdcare, p.alt, nonadhere.pop
   intervention = c(int.intervention,cont.intervention)
   
   #ACTUAL OUTCOMES depend on intervention
-  outcome = getoutcome(outcome0 = d.grouped[,4], outcome1 = d.grouped[,5], outcome2 = d.grouped[,6], intervention)
+  outcome = getoutcome(d.grouped[,4], d.grouped[,5], d.grouped[,6], intervention)
   simdata = matrix(cbind(d.grouped[,-6:-4], intervention, outcome), ncol = 5)
   
   return(simdata)

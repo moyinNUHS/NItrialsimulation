@@ -4,13 +4,14 @@
 ################################################################################################################
 
 # Required libraries 
-library(Rcpp)
+library(Rcpp); library(speedglm)
 library(Hmisc); library(rms); library(gsDesign)
 library(dplyr); library(tableone); library(scales);
 library(survey); library(gmm) #for analysis 
 library(ggpubr); library(ggplot2); library(gridExtra); library(plotly) #for plots 
 
 # source necessary codes
+sourceCpp('shiny/samplesize_nonadherence/rcpp.cpp')
 source('simdata_code100220.R')
 source('analysis_code100220.R')
 source('scenario_code100220.R')
@@ -23,15 +24,6 @@ analysis.method <- c("Instrumental variable","Intention to treat","Inverse proba
 # set number of data points at which simulated data is analysed  
 start.interval <- 0.6
 interval <- seq(from = start.interval, to = 1, by = 0.025)
-
-getoutcome <- function(outcome0, outcome1, outcome2, intervention){
-  outcome = c()
-  outcome.matrix = matrix(c(outcome0, outcome1, outcome2), ncol = 3)
-  for (i in 1:length(intervention)){
-    outcome[i] = outcome.matrix[i, (intervention[i]+1)]
-  }
-  return(unlist(outcome))
-}
 
 getoutcome.unknownconfounding.multi<-function(vector.outcome1, vector.outcome0, intervention){
   outcome = c()
