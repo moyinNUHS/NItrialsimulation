@@ -80,7 +80,7 @@ ui <- fluidPage(
         ),
         h2(),
         h4("Lastest update"),
-        h5("22th February, 2020"),
+        h5("25th February, 2020"),
         width = 15
       )
     ),
@@ -142,7 +142,7 @@ ui <- fluidPage(
             inputId = "nonadhere.txNC",
             label = "Actual treatment likely to be taken up by the non-adherent participants",
             choices = list("Cross-over to the opposite arm" = 1, 
-                           "Inferior treatment compared to both experimental and standard-of-care treatments (e.g. default treatment)" = 2),
+                           "Alternative treatment (e.g. default all treatments)" = 2),
             selected = 1
           ),
           
@@ -283,7 +283,7 @@ ui <- fluidPage(
             inputId = "nonadhere.txC",
             label = "Actual treatment likely to be taken up by the non-adherent participants",
             choices = list("Cross-over to the opposite arm" = 1, 
-                           "Inferior treatment compared to both experimental and standard-of-care treatments (e.g. default treatment)" = 2),
+                           "Alternative treatment (e.g. default all treatments)" = 2),
             selected = 1
           ),
           
@@ -379,8 +379,8 @@ ui <- fluidPage(
           #input
           sliderInput(
             inputId = "confounder.eff",
-            label = "Magnitude of confounding effect on treatment failure 
-            (when estimated using treatment failure as the dependent variable, and confounder as the independent variable)",
+            label = "Magnitude of direct confounding effect on treatment failure 
+            (when estimated using treatment failure as the dependent variable, and confounder as the independent variable in a linear regression)",
             min = 0.5,
             max = 10,
             value = 1,
@@ -757,7 +757,7 @@ server <- function(input, output, session) {
       "Level of significance",
       "Effect of confounder on taking up the experimental treatment",
       "Effect of confounder on treatment failure",
-      paste("Magnitude of confounding effect on treatment failure", "(estimated using treatment failure as the dependent variable, and confounder as the independent variable)", sep = '<br>'),
+      paste("Magnitude of direct confounding effect on treatment failure", "(estimated using treatment failure as the dependent variable, and confounder as the independent variable in a linear regression)", sep = '<br>'),
       "Power using intention to treat analysis",
       "Power using per-protocol analysis",
       "Power using inverse probability weighting estimation",
