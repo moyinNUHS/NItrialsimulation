@@ -505,8 +505,8 @@ server <- function(input, output, session) {
           intervention[sample(which(randomisation == 0), size = adhere.stdcare * n)] = 0
           
           if (nonadhere.tx == 1){
-            intervention[which(randomisation == 1) %in% which(is.na(intervention))] = 0
-            intervention[which(randomisation == 0) %in% which(is.na(intervention))] = 1
+            intervention[intersect(which(randomisation == 1), which(is.na(intervention)))] = 0
+            intervention[intersect(which(is.na(intervention)), which(randomisation == 0))] = 1
           } else {
             intervention[which(is.na(intervention))] = 2
           }
@@ -516,7 +516,7 @@ server <- function(input, output, session) {
           
           simdata = matrix(data = c(id, randomisation, confounder, intervention, outcome),
                            nrow = (2 * n))
-          
+          print(l)
           estimate.iter[[l]] = analysis.estimate(simdata = simdata)
           
           # Increment the progress bar, and update the detail text.

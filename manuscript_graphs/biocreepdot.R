@@ -1,7 +1,7 @@
 ######Biocreep dotplot#######
 
-setwd("/Users/moyin/Desktop/NItrialsimulation-master/") #set working directory 
-source('/Users/moyin/Desktop/NItrialsimulation-master/causalinference 11 March 2019 (no AT and matching).R')
+setwd("/Users/moyin/Documents/nBox/git_projects/NItrialsimulation/") #set working directory 
+source('setup_code100220.R')
 
 #set number of data points at which simulated data is analysed  
 start.interval=0.7
@@ -43,7 +43,7 @@ type1.nonconfounding.dotplot<- function(n, nIterations, interval,NImargin, nonco
                     intervention = c(experiment.intervention,stdcare.intervention)
                     
                     #ACTUAL OUTCOMES depend on intervention
-                    outcome<-getoutcome(vector.outcome1=outcome1, vector.outcome0=outcome0, intervention=intervention)
+                    outcome<-getoutcome.unknownconfounding.multi(vector.outcome1=outcome1, vector.outcome0=outcome0, intervention=intervention)
                     
                     simdata=matrix(data=c(id,randomisation,intervention,outcome), nrow=(2*n))
                     
@@ -130,7 +130,7 @@ c=ggplot(plotdf[11:13,], aes(Trials, y)) +
     ylab('')+
     xlab('')+
     theme_minimal()+theme(text = element_text(size=15),
-                          legend.position="none", panel.grid.major = element_blank(),panel.grid.minor= element_blank(),
+                          panel.grid.major = element_blank(),panel.grid.minor= element_blank(),
                           axis.text.x=element_text(angle = 90, hjust = 1, face="bold"))
 
 d=ggplot(plotdf[16:17,], aes(Trials, y)) + 
@@ -148,7 +148,7 @@ d=ggplot(plotdf[16:17,], aes(Trials, y)) +
                           legend.position="none", panel.grid.major = element_blank(),panel.grid.minor= element_blank(),
                           axis.text.x=element_text(angle = 90, hjust = 1, face="bold"))
 
-p=ggarrange(d,c,b,a, ncol=4)
+p=ggarrange(d,c,b,a, ncol=4, common.legend = T, legend = 'bottom')
 
 annotate_figure(p,
                 bottom = text_grob("Consecutive non-inferiority trials")
